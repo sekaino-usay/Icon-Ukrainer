@@ -9,13 +9,11 @@
 
 <body>
     <?php
-    //画像ファイルを受け取り
+    // 画像ファイルを受け取り
     $img = $_FILES['image'];
-    //画像ファイルのパスを取得
-    $img_path = $img['tmp_name'];
-    //画像ファイルの拡張子を取得
+    // 画像ファイルの拡張子を取得
     $img_extension = pathinfo($img['name'], PATHINFO_EXTENSION);
-    //画像ファイルの拡張子がjpgかpngか判定
+    // 画像ファイルの拡張子がjpgかpngか判定
     if ($img_extension == "jpg") {
         $src_img = imagecreatefromjpeg($img['tmp_name']);
     } elseif ($img_extension = "png") {
@@ -24,7 +22,15 @@
         echo "画像ファイルを選択してください";
         exit;
     }
-
+    // 画像ファイルのサイズを取得
+    $src_width = imagesx($src_img);
+    $src_height = imagesy($src_img);
+    // 正方形かどうか判定
+    if ($src_width != $src_height) {
+        echo "正方形の画像を選択してください．";
+        exit;
+    }
+    // 画像ファイルを読み込み
     $bg_img = imagecreatefromjpeg("./img/bg.jpg");
     // 画像ファイルのサイズを取得
     $rect = imagesx($src_img);
@@ -46,7 +52,7 @@
     // 画像を読み込み
     $bg_img = imagecreatefromjpeg("img/bg.jpg");
     // $bg_imgと$src_imgをリサイズ
-    $bg_img = imagescale($bg_img, imagesx($src_img) / 100 * 110, imagesy($src_img) / 100 * 110);
+    $bg_img = imagescale($bg_img, imagesx($src_img) / 100 * 115, imagesy($src_img) / 100 * 115);
     // 画像を合成
     imagecopymerge($bg_img, $src_img, imagesx($bg_img) / 2 - $rect / 2, imagesy($bg_img) / 2 - $rect / 2, 0, 0, $rect, $rect, 100);
     // 画像をbase64エンコードして出力

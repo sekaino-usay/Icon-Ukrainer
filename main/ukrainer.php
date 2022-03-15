@@ -14,8 +14,10 @@
 </head>
 
 <body>
-    <img src="./img/logo.png" width="10%" alt="Icon Ukrainer">
-    <h1>Icon Ukrainer</h1>
+    <a href="./index.php"><img src="./img/logo.png" width="10%" alt="Icon Ukrainer"></a>
+    <a href="./index.php" style="color: black; text-decoration: none;">
+        <h1>Icon Ukrainer</h1>
+    </a>
     <div>
         <?php
         // ファイルが選択されているか確認
@@ -85,8 +87,8 @@
         <p>何か問題があれば，<a href="https://twitter.com/sekaino_usay" target="_blank">U_SAY</a>までご連絡をお願いします．</p>
     </div>
     <footer>
-        <p>Developed by <a href="https://www.usay05.com" target="_blank">U_SAY</a></p>
-        <p>Copyright © 2022 <a href="https://icon-ukrainer.usay05.com" target="_blank">Icon Ukrainer</a> All Rights Reserved.</p>
+        <p>Source code is available on <a href="https://github.com/sekaino-usay/Icon-Ukrainer" target="_blank">GitHub</a></p>
+        <p>Copyright © 2022 <a href=" https://icon-ukrainer.usay05.com" target="_blank">Icon Ukrainer</a> All Rights Reserved.</p>
     </footer>
 </body>
 

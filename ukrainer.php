@@ -21,74 +21,76 @@
     <div>
         <?php
         // ファイルが選択されているか確認
-        if (!is_uploaded_file($_FILES['image']['tmp_name'])) {
+        if (empty($_FILES['image']['tmp_name'])) {
             echo '<p>アイコン画像を選択してください．</p>';
             echo '<button onclick="location.href=\'./index.php\'">画像を選択する</button>';
-        } elseif (isset($_FILES['image'])) {
+        } else {
             // 画像ファイルを受け取り
             $img = $_FILES['image'];
             // 画像ファイルのmimeタイプを取得
             $img_mime = mime_content_type($img['tmp_name']);
+            // 画像のサイズを取得
+            $width = getimagesize($img['tmp_name'])[0];
+            $height = getimagesize($img['tmp_name'])[1];
             // 画像ファイルのmineタイプがimage/jpegだった場合
-            if ($img_mime === 'image/jpeg') {
-                $src_img = imagecreatefromjpeg($img['tmp_name']);
-            } elseif ($img_mime === 'image/png') {
-                $src_img = imagecreatefrompng($img['tmp_name']);
-            } else {
+            if ($img_mime != 'image/jpeg' && $img_mime != 'image/png') {
                 echo '<p>このファイルのMINEタイプは ' . $img_mime . ' です．</p>';
                 echo '<p>画像ファイルは jpg（jpeg）か png を選択してください．</p>';
-                exit;
-            }
-            // 画像ファイルのサイズを取得
-            $src_width = imagesx($src_img);
-            $src_height = imagesy($src_img);
-            // 正方形かどうか判定
-            if ($src_width != $src_height) {
+                echo '<br><button onclick="location.href=\'./index.php\'">別の画像を選択する</button>';
+            } elseif ($width != $height) {
                 echo '<p>正方形の画像を選択してください．</p>';
-                exit;
+                echo '<br><button onclick="location.href=\'./index.php\'">別の画像を選択する</button>';
+            } else {
+                if ($img_mime == 'image/jpeg') {
+                    $src_img = imagecreatefromjpeg($img['tmp_name']);
+                } elseif ($img_mime == 'image/png') {
+                    $src_img = imagecreatefrompng($img['tmp_name']);
+                }
+                // 画像ファイルを読み込み
+                $bg_img = imagecreatefromjpeg("./img/bg.jpg");
+                // 画像ファイルのサイズを取得
+                $rect = imagesx($src_img);
+                // 真ん中が透過色のマスク画像を用意
+                $mask = imagecreatetruecolor($rect, $rect);
+                // 背景色に緑(0, 255, 0)を指定して塗りつぶし(色は任意)
+                $green = imagecolorallocate($mask, 0, 255, 0);
+                imagefill($mask, 0, 0, $green);
+                // マスクの透過色を指定(255, 0, 255)
+                $mask_transparent = imagecolorallocate($mask, 255, 0, 255);
+                imagecolortransparent($mask, $mask_transparent);
+                // 中央の円を透過色で塗りつぶし
+                imagefilledellipse($mask, $rect / 2, $rect / 2, $rect, $rect, $mask_transparent);
+                // 元画像とマスク画像を重ね合わせ
+                imagecopymerge($src_img, $mask, 0, 0, 0, 0, $rect, $rect, 100);
+                // 余分な背景色の緑(0, 255, 0)を透過色に指定
+                $src_transparent = imagecolorallocate($src_img, 0, 255, 0);
+                imagecolortransparent($src_img, $src_transparent);
+                // 画像を読み込み
+                $bg_img = imagecreatefromjpeg("./img/bg.jpg");
+                // $bg_imgと$src_imgをリサイズ
+                $bg_img = imagescale($bg_img, imagesx($src_img) / 100 * 115, imagesy($src_img) / 100 * 115);
+                // 画像を合成
+                imagecopymerge($bg_img, $src_img, imagesx($bg_img) / 2 - $rect / 2, imagesy($bg_img) / 2 - $rect / 2, 0, 0, $rect, $rect, 100);
+                // 画像をbase64エンコードして出力
+                ob_start();
+                imagepng($bg_img);
+                $image_data = ob_get_contents();
+                ob_end_clean();
+                echo '<p>アイコン画像を作成しました！</p>';
+                echo '<p>画像を長押し，または右クリックでダウンロードしてお使いください！（画像をクリックすると，新しいタブで開きます．）</p>';
+                echo '<a href="data:image/png;base64,' . base64_encode($image_data) . '" target="_blank"><img src="data:image/png;base64,' . base64_encode($image_data) . '" width="25%"></a>';
+                echo '<br><a href="data:image/png;base64,' . base64_encode($image_data) . '" download="Icon-Ukrainer.png"><button>アイコン画像をダウンロード</button></a>';
+                echo '<br><button onclick="location.href=\'./index.php\'">別の画像を選択する</button>';
             }
-            // 画像ファイルを読み込み
-            $bg_img = imagecreatefromjpeg("./img/bg.jpg");
-            // 画像ファイルのサイズを取得
-            $rect = imagesx($src_img);
-            // 真ん中が透過色のマスク画像を用意
-            $mask = imagecreatetruecolor($rect, $rect);
-            // 背景色に緑(0, 255, 0)を指定して塗りつぶし(色は任意)
-            $green = imagecolorallocate($mask, 0, 255, 0);
-            imagefill($mask, 0, 0, $green);
-            // マスクの透過色を指定(255, 0, 255)
-            $mask_transparent = imagecolorallocate($mask, 255, 0, 255);
-            imagecolortransparent($mask, $mask_transparent);
-            // 中央の円を透過色で塗りつぶし
-            imagefilledellipse($mask, $rect / 2, $rect / 2, $rect, $rect, $mask_transparent);
-            // 元画像とマスク画像を重ね合わせ
-            imagecopymerge($src_img, $mask, 0, 0, 0, 0, $rect, $rect, 100);
-            // 余分な背景色の緑(0, 255, 0)を透過色に指定
-            $src_transparent = imagecolorallocate($src_img, 0, 255, 0);
-            imagecolortransparent($src_img, $src_transparent);
-            // 画像を読み込み
-            $bg_img = imagecreatefromjpeg("./img/bg.jpg");
-            // $bg_imgと$src_imgをリサイズ
-            $bg_img = imagescale($bg_img, imagesx($src_img) / 100 * 115, imagesy($src_img) / 100 * 115);
-            // 画像を合成
-            imagecopymerge($bg_img, $src_img, imagesx($bg_img) / 2 - $rect / 2, imagesy($bg_img) / 2 - $rect / 2, 0, 0, $rect, $rect, 100);
-            // 画像をbase64エンコードして出力
-            ob_start();
-            imagepng($bg_img);
-            $image_data = ob_get_contents();
-            ob_end_clean();
-            echo '<p>アイコン画像を作成しました！</p>';
-            echo '<p>画像を長押し，または右クリックでダウンロードしてお使いください！</p>';
-            echo '<img src="data:image/png;base64,' . base64_encode($image_data) . '" width="25%"> ';
-            echo '<br><a href="data:image/png;base64,' . base64_encode($image_data) . '" download="Icon-Ukrainer.png"><button>アイコン画像をダウンロード</button></a>';
-            echo '<br><button onclick="location.href=\'./index.php\'">別の画像を選択する</button>';
         }
         ?>
         <p>何か問題があれば，<a href="https://twitter.com/sekaino_usay" target="_blank">U_SAY</a>までご連絡をお願いします．</p>
     </div>
     <footer>
-        <p>Source code is available on <a href="https://github.com/sekaino-usay/Icon-Ukrainer" target="_blank">GitHub</a></p>
-        <p>Copyright © 2022 <a href=" https://icon-ukrainer.usay05.com" target="_blank">Icon Ukrainer</a> All Rights Reserved.</p>
+        <small>
+            <p>Source code is available on <a href="https://github.com/sekaino-usay/Icon-Ukrainer" target="_blank">GitHub</a></p>
+            <p>Copyright © 2022 <a href=" https://icon-ukrainer.usay05.com" target="_blank">Icon Ukrainer</a> All Rights Reserved.</p>
+        </small>
     </footer>
 </body>
 
